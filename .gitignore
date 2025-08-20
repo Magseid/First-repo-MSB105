@@ -1,3 +1,10 @@
+# MSE changes
+.gitignore
+*.pdf
+*.html
+*.docx
+*.Rproj
+
 # History files
 .Rhistory
 .Rapp.history
