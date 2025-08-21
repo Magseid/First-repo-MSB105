@@ -4,6 +4,8 @@
 *.html
 *.docx
 *.Rproj
+*.md
+*.tex
 
 # History files
 .Rhistory
