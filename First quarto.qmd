@@ -4,6 +4,56 @@ format: html
 editor: visual
 ---
 
+# librarys
+```{r}
+#| label: setup
+library(tidyverse)
+library(PxWebApiData)
+library(readxl)
+```
+
+# datasett
+```{r}
+read_xlsx("RegHeltLedige.xlsx")
+```
+
+# lese excelfil innhold
+```{r}
+RegHeltLedige <- readxl::read_excel(
+  path = "RegHeltLedige.xlsx", 
+  sheet = "RegHeltLedige",
+  skip = 1
+  )
+# Have a look at the names generated
+names(RegHeltLedige)
+```
+```{r}
+head(RegHeltLedige, n = 15)
+```
+
+```{r}
+print(RegHeltLedige[c(1:5, 45:55),], n = 20)
+```
+```{r}
+names(RegHeltLedige) <- c("knr_kname", "age_group", "year_month", "unempl")
+head(RegHeltLedige, n = 3)
+```
+
+```{r}
+# Fill in for NA
+RegHeltLedige <- fill(
+  data = RegHeltLedige,
+  # column to fill, Note use of c() when multiple columns
+  c(knr_kname, age_group),
+  # NOTE! .direction, NOT direction
+  .direction = "down")
+```
+```{r}
+head(as.data.frame(RegHeltLedige), n =200)
+```
+
+
+
 ## Quarto
 
 Quarto enables you to weave together content and executable code into a finished document.
@@ -26,3 +76,8 @@ You can add options to executable code like this
 ```
 
 The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+
+```
+
