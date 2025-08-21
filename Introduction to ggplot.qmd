@@ -1,0 +1,82 @@
+---
+title: "Introduction to ggplot"
+format: html
+editor: visual
+---
+
+# Librarys
+```{r}
+#| label: setup
+library(ggplot2)
+library(tinytex)
+library(tidyverse)
+library(ggpubr)
+```
+```{r}
+ggplot(data = mtcars)
+
+```
+# Legger til det visuelle med tabellen: x og y akse
+```{r}
+ggplot(data = mtcars, mapping = aes(x = disp, y = mpg))
+```
+```{r}
+gg1 <-   ggplot(data = mtcars, mapping = aes(x = disp, y = mpg)) +
+  geom_point()
+
+gg2 <-   ggplot(data = mtcars) +
+  geom_point(mapping = aes(x = disp, y = mpg))
+
+ggarrange(gg1, gg2, labels = c("mapping = aes in ggplot", "mapping = aes in geom_*"),
+          nrow = 1)
+```
+
+```{r}
+ggplot() +
+  geom_point(data = mtcars, mapping = aes(x = disp, y = mpg))
+```
+
+## tester ut forskjell på å ha "global mapping" og "lokal mapping"
+
+#"Global mapping", legger innformasjonen inn i ggplot()
+```{r}
+ggplot(data = mtcars, aes(x = disp, y = mpg)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red")
+
+```
+#"Lokal mapping", legger innformasjonen inn i geom_point og geom_smooth
+```{r}
+ggplot() +
+  geom_point(data = mtcars, aes(x = disp, y = mpg), color = "blue") +
+  geom_smooth(data = subset(mtcars, cyl == 4), 
+              aes(x = disp, y = mpg), method = "lm", se = FALSE, color = "red")
+
+```
+# Bruker begge samtidig
+```{r}
+gg3 <-   ggplot(data = mtcars, mapping = aes(x = disp, colour = factor(cyl))) +
+  geom_point(data = mtcars, mapping = aes(y = mpg))
+gg4 <-   ggplot(data =  mtcars, mapping = aes(x = disp, colour = factor(cyl))) +
+  geom_point(data = mtcars, mapping = aes(x = qsec, y = mpg), show.legend = TRUE, inherit.aes = FALSE)
+
+gg5 <-   ggplot(data = mtcars, mapping = aes(colour = factor(cyl))) +
+  geom_point(mapping = aes(x = qsec, y = mpg), show.legend = TRUE, inherit.aes = FALSE)
+
+ggarrange(gg3, gg4, gg5, labels = c("inherit.aes = TRUE\n(default)", "inherit.aes = FALSE", "no x = disp\nin ggplot"),
+          nrow = 1)
+```
+
+```{r}
+ggplot() +
+  geom_point(data = mtcars, mapping = aes(x = disp, y = mpg, colour = factor(cyl), size = qsec))
+```
+
+```{r}
+ggplot() +
+  geom_point(data = mtcars,
+             mapping = aes(x = disp, y = mpg, colour = factor(cyl), alpha = 3.6*(0.25*1609.347)/qsec,
+                           shape = factor(ifelse(am, "Man", "Aut"))), size=4) +
+  labs(colour = "cyl", alpha = "speed\n(km/h)", shape = "trans-\nmission")
+```
+
