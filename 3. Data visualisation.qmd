@@ -1,0 +1,147 @@
+---
+title: "R for data science"
+format: html
+editor: visual
+---
+```{r}
+#| label: setup
+library(tidyverse)
+
+```
+```{r}
+mpg
+```
+```{r}
+ggplot(data = mpg)+
+  geom_point(mapping = aes(x = displ, y = hwy))
+```
+```{r}
+# utvider ggplott til å inkludere en til variabel "color"
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class))
+```
+```{r}
+# kan også endre "color" til "size" eller bruke begge
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, size = class, color = class))
+# kan også bruke "alpha" for å endre på gjennomsiktigheten, eller "shape" for å endre form på punktene
+# ved bruk av "shape" vil den som standard kun bruke 6 forskjellige former for å definer variabler, altså vil en av 
+# variablene i dette plottet ikke bli definert fordi vi har 7 variabler
+```
+```{r}
+# kan også legge til farge manuelt
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy),color = "blue")
+```
+
+```{r}
+# legger til "facet" for å vis flere variabler i ulike plot
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_wrap(~ class, nrow = 2)
+```
+```{r}
+# 
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_grid(drv ~ cyl)
+```
+
+## Exercice: 
+```{r}
+# 1. What happens if you facet on a continuous variable?
+# Om man bruker en kontinuerlig variable i en facet, vil du få ett panel per unike tallverdi -> ofte veldig mange paneler som blir uoversiktelig. Faceting er egentlig ment for kategoriske variabler som i dette tilfelle feks er "cyl, drv og class"
+```
+```{r}
+# 2. What do the empty cells in plot with facet_grid(drv ~ cyl) mean? How do they relate to this plot?
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = drv, y = cyl))
+
+# De tomme cellene er kombinasjoner av "drv" og "cyl" som ikke finnes i datasettet.
+# Faceit_grid lager et rutenett av alla mulige kobinasjoner, selv om noen er tomme.
+
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = drv, y = cyl)) +
+  facet_grid(drv ~ cyl)
+
+```
+```{r}
+## 3. What plots does the following code make? What does . do?
+# ggplot(data = mpg) + 
+#   geom_point(mapping = aes(x = displ, y = hwy)) +
+#   facet_grid(drv ~ .)
+
+# ggplot(data = mpg) + 
+#   geom_point(mapping = aes(x = displ, y = hwy)) +
+#   facet_grid(. ~ cyl)
+
+# "." betyr "ingen faceting" på denne aksen. altså sier den første koden at vi skal ha egne rader for hver "drv", og for den andre koden vil vi ha egne kolonner for hver "cyl"  
+
+
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  facet_grid(drv ~ .)   # rader = drv, ingen kolonner
+
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  facet_grid(. ~ cyl)   # kolonner = cyl, ingen rader
+
+```
+
+```{r}
+## 4. Take the first faceted plot in this section:
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_wrap(~ class, nrow = 2)
+## What are the advantages to using faceting instead of the colour aesthetic? What are the disadvantages? How might the balance change if you had a larger dataset?
+
+# Fordeler med å bruke facet er at det blir lettere å sammenligne mønstre innen hver kategori, mindre visuell støy.
+# Ulemper er at det blir vanskeligere å sammanligne mellom kategoriene. 
+# Med større datasett kan faceting bli mer nyttig (unngår kaos av mange farger) .
+```
+
+```{r}
+## 5. Read ?facet_wrap. What does nrow do? What does ncol do? What other options control the layout of the individual panels? Why doesn’t facet_grid() have nrow and ncol arguments?
+#  "nrow" og "ncol" kontrolerer hvor mange kolonner og rader som skal med i faceten.
+#  facet_grid har ikke "ncol" og "nrow" fordi den alltif viser alle mulige kombinasjoner av to variabler i et fast rutenett.
+```
+
+```{r}
+## 6. Hvorfor bør du sette variabelen med flest unike nivåer i kolonner i facet_grid()? 
+# Skjermer er ofte bredere enn høye → bedre utnyttelse av plassen hvis du legger mange paneler bortover (i kolonner) i stedet for nedover.
+```
+
+
+## Geometric objects
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
