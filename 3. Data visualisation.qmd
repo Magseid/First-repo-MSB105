@@ -61,7 +61,7 @@ ggplot(data = mpg) +
   facet_grid(drv ~ cyl)
 ```
 
-# Exercice:
+# Exercises
 
 ```{r}
 # 1. What happens if you facet on a continuous variable?
@@ -200,7 +200,7 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
 # se = FALSE fjerner "skyggen" rundt linjen
 ```
 
-# Exercice
+# Exercises
 
 ```{r}
 ## 1. What geom would you use to draw a line chart? A boxplot? A histogram? An area chart?
@@ -279,4 +279,274 @@ ggplot() +
 ggplot(data = mpg, mapping = aes(x = displ, y = hwy, fill = drv)) +
   geom_point(shape = 21, color = "white", size = 3, stroke = 1)
 ```
+
+## 3.7 Statistical transformations
+
+```{r}
+diamonds
+```
+
+```{r}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut))
+# Dan lage samme plotet som over ved å bruke "stat_count"
+ggplot(data = diamonds) +
+  stat_count(mapping = aes(x = cut))
+# Dette fungerer fordig en hver geom har en dafault stat; og en hver stat har en default geom
+# Derfor kan man vanligvis bruke geoms uten å tenke over      de underliggende statistiske                transformasjonen, men det er tre grunner til at man kanskje trenger å bruke en stat eksplisitt
+
+
+# 1. Du kan noen ganger ønske å overstyre standard-statistikken. I eksemplet under endres stat i          geom_bar() fra count (standard) til identity. Da kan høyden på søylene bestemmes direkte av           verdiene i en y-variabel. Når folk snakker om stolpediagrammer, kan de enten mene denne typen         (høyden finnes allerede i dataene) eller den vanlige varianten der høyden beregnes ved å telle        rader.
+
+demo <- tribble(
+  ~cut,         ~freq,
+  "Fair",       1610,
+  "Good",       4906,
+  "Very Good",  12082,
+  "Premium",    13791,
+  "Ideal",      21551
+)
+ggplot(data = demo) +
+  geom_bar(mapping = aes(x = cut, y = freq), stat = "identity")
+
+# 2. Du kan noen ganger ønske å overstyre standardkoblingen fra transformerte variabler til estetikk.     For eksempel kan du ville vise et stolpediagram med proporsjoner i stedet for antall.
+
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, y = stat(prop), group = 1))
+
+# 3. Du kan ønske å rette mer oppmerksomhet mot den statistiske transformasjonen i koden. For eksempel     kan du bruke stat_summary(), som oppsummerer y-verdiene for hver unik x-verdi, for å tydeliggjøre     hvilken oppsummering du beregner.
+
+ggplot(data = diamonds) + 
+  stat_summary(
+    mapping = aes(x = cut, y = depth),
+    fun.min = min,
+    fun.max = max,
+    fun = median
+  )
+```
+
+# Exercises
+
+```{r}
+## 1. What is the default geom associated with stat_summary()? How could you rewrite the previous plot     to use that geom function instead of the stat function?
+# Skriver inn ?stat_summary i consolen for å finne hjelpe siden. Der står det art geomet til              stat_summary() = pointrange
+
+```
+
+```{r}
+## 2. What does geom_col() do? How is it different to geom_bar()?
+# geom_bar() bruker stat = "count" som teller antall observasjoner i hver kategori av x. du trenger       ikke å gi en y-variabel, fordi ggplot2 regner ut høyden sev, altså "count"
+# geom_col() bruker stat = "identity". Altså er det forventet at du har y-verdier i datasettet, og        bruker dem direkte som søylehøyder. Du må derfor definer både x og y.
+
+# geom_bar() = teller antall rader per kategori automatisk.
+# geom_col() = bruker de verdiene du selv gir som høyde.
+```
+
+```{r}
+## 3. Most geoms and stats come in pairs that are almost always used in concert. Read through the documentation and make a list of all the pairs. What do they have in common?
+
+# Dette er de vanligste geom-stat-parene i ggplot2. De deler samme underliggende beregning; bare navnet du kaller     er ulikt.
+# 
+# geom_bar() ↔ stat_count()
+
+# geom_col() ↔ stat_identity()
+
+# geom_histogram(), geom_freqpoly() ↔ stat_bin()
+
+# geom_density() ↔ stat_density()
+
+# geom_smooth() ↔ stat_smooth()
+
+# geom_boxplot() ↔ stat_boxplot()
+
+# geom_violin() ↔ stat_ydensity()
+
+# geom_bin2d() ↔ stat_bin_2d()
+
+# geom_hex() ↔ stat_binhex() (krever hexbin)
+
+# geom_contour() ↔ stat_contour()
+
+# geom_density_2d() / _filled ↔ stat_density_2d() / _filled
+
+# geom_function() ↔ stat_function()
+
+# geom_qq() ↔ stat_qq()
+
+# geom_qq_line() ↔ stat_qq_line()
+
+# stat_summary() ↔ (default geom_pointrange(); kan også bruke geom="point"/"line"/"errorbar")
+
+# stat_summary_bin() ↔ typisk geom="pointrange"/"errorbar"
+
+# geom_dotplot() ↔ stat_bindot()
+
+# geom_count() ↔ stat_sum()
+
+# stat_ecdf() ↔ (default geom_step())
+
+```
+
+```{r}
+## 4. What variables does stat_smooth() compute? What parameters control its behaviour?
+
+# 
+
+```
+
+
+```{r}
+## 5. In our proportion bar chart, we need to set group = 1. Why? In other words what is the problem with these two graphs?
+
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, y = after_stat(prop)))
+
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = color, y = after_stat(prop)))
+
+# Uten group = 1 vil ggplot regne proporsjoner innenfor hver undergruppe (f.eks. per fill eller color). Da blir       søylehøydene feil, fordi de summerer til 1 innenfor hver kategori i stedet for over hele datasettet.
+
+ggplot(diamonds) +
+  geom_bar(aes(x = cut, y = after_stat(prop), group = 1))
+# Dette tvinger ggplot til å beregne proporsjonene som én gruppe totalt.
+```
+
+## 3.8 Position adjustments
+
+```{r}
+# kan legge til farger i vår "bar chart" ved å bruke "color" eller enda mer nyttig "fill"
+
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, color = cut))
+
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, fill = cut))
+
+# Setter fill til noe annet enn cut, f.eks. clarity
+
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut, fill = clarity))
+
+# 
+ggplot(data = diamonds, mapping = aes(x = cut, fill = clarity)) + 
+  geom_bar(alpha = 1/5, position = "identity")
+ggplot(data = diamonds, mapping = aes(x = cut, colour = clarity)) + 
+  geom_bar(fill = NA, position = "identity")
+
+# position = "fill" fungerer som stacking, men gjør at hver gruppe av stablede søyler får samme høyde. Dette gjør     det enklere å sammenligne proporsjoner mellom grupper.
+
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "fill")
+
+# Ved å bruke "position = "dodge"" kan vi plassere overlappende objekter ved siden av hverandre. Noe som gjør det     enklere å sammenligne individuelle variabler
+
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "dodge")
+```
+
+```{r}
+# det er en siste type adjustments som ikke er verdiful for bar charts, men som kan være veldig verdifull for         scatterplots. f.eks. i det første scatterplottet har vi kun 126 punkter selv om det er 234 observasjoner i        datasettet. Dette er fordi at verdien av variablene hwy og displ blir rundet slik at de kan bli plassert i        plotet. dette fører til "overplotting"
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy))
+
+# Vi kan ungå dette ved å sette en position adjustment til "jitter". position = jitter. 
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy), position = "jitter")
+```
+
+# Exercises
+
+```{r}
+## 1. What is the problem with this plot? How could you improve it?
+# Problemet er at cty og hwy er sterkt korrelert, så plottet gir lite ny innsikt. Du kan forbedre      det ved å velge mer meningsfulle variabler, bruke farge/form for ekstra dimensjoner, legge til     trendlinje eller redusere overlapp med alpha/jitter.
+ 
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy, color = class)) +
+  geom_jitter(alpha = 0.5)
+```
+
+
+```{r}
+## 2. What parameters to geom_jitter() control the amount of jittering?
+# Geom_jitter() er en shortcut for geom_point(position = "jitter")
+# - width -> hvor mye det "jitter" på x-aksen.
+# - height -> hvor mye "jitter" på y-aksen.
+# - seed -> Tilfeldig seed for å gjøre "jitteren" reproduserbar.
+
+# Small jitter on x only
+ggplot(mpg, aes(class, hwy)) +
+  geom_jitter(width = 0.2, height = 0)
+
+# Larger jitter on both axes
+ggplot(mpg, aes(cty, hwy)) +
+  geom_jitter(width = 0.5, height = 0.5, alpha = 0.5)
+
+```
+
+
+```{r}
+## 3. Compare and contrast geom_jitter() with geom_count().
+
+# geom_jitter()
+# - Legger til tilfeldig støy (jitter) i posisjonen til punktene.
+# - Hindrer at punkter med identiske (x, y)-verdier havner oppå hverandre.
+# - Nyttig for diskrete x-verdier (f.eks. kategorier) hvor punktene ellers ville ligget som en rett       linje.
+# - Ulempe: punktene vises på litt «feil» sted, kan gi inntrykk av variasjon som egentlig ikke           finnes.
+
+ggplot(mpg, aes(cty, hwy)) +
+  geom_jitter(width = 0.2, height = 0)
+
+ 
+# geom_count()
+# - Øker størrelsen på punktet avhengig av hvor mange observasjoner som deler samme (x,                  y)-posisjon.
+# - Flytter ikke punktene – de beholdes på nøyaktig posisjon.
+# - Nyttig når man har eksakte duplikater (samme verdi på x og y).
+# - Ulempe: fungerer ikke hvis dataene ikke har helt like (x, y)-verdier.
+
+ggplot(mpg, aes(cty, hwy)) +
+  geom_count()
+
+```
+
+
+```{r}
+## 4. What’s the default position adjustment for geom_boxplot()? Create a visualisation of the mpg         dataset that demonstrates it.
+
+ggplot(data = mpg, mapping = aes(x = class, y = hwy, fill = drv)) + 
+  geom_boxplot()
+```
+
+## 3.9 Coordinate systems
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
