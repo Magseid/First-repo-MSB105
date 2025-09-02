@@ -519,12 +519,128 @@ ggplot(data = mpg, mapping = aes(x = class, y = hwy, fill = drv)) +
 
 ## 3.9 Coordinate systems
 
+```{r}
+# kan bruke coord_flip() for å bytte om på x og y aksene. Dete kan være nyttig dersom du vil ha et    horisontalt boxplot, men det kan også være nyttig dersom navnene på x eller y aksen er for lange    til å få plass
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+  geom_boxplot()
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+  geom_boxplot() +
+  coord_flip()
+```
+
+```{r}
+# coord_quickmap brukes for å sete den riktige aspect ratioen for kart
+nz <- map_data("nz")
+
+ggplot(nz, aes(long, lat, group = group)) +
+  geom_polygon(fill = "white", colour = "black")
+
+ggplot(nz, aes(long, lat, group = group)) +
+  geom_polygon(fill = "white", colour = "black") +
+  coord_quickmap()
+```
+
+```{r}
+# coor_polar()
+bar <- ggplot(data = diamonds) + 
+  geom_bar(
+    mapping = aes(x = cut, fill = cut), 
+    show.legend = FALSE,
+    width = 1
+  ) + 
+  theme(aspect.ratio = 1) +
+  labs(x = NULL, y = NULL)
+
+bar + coord_flip()
+bar + coord_polar()
+```
 
 
+# Exercises
 
+```{r}
+## 1. Turn a stacked bar chart into a pie chart using coord_polar().
 
+ggplot(data = diamonds) +
+         geom_bar(
+           mapping = aes(x = cut, fill = cut),
+           show.legend = FALSE
+         ) +
+  theme(aspect.ratio = 1) +
+  labs(x = NULL, y = NULL)
 
+bar + coord_polar()
+bar + coord_flip()
+```
 
+```{r}
+## 2. What does labs() do? Read the documentation.
+# labs() brukes til å sette titler, aksetekster, undertitler og caption i et ggplot.
+
+ggplot(data = mpg,mapping = aes(x = displ,y = hwy)) +
+  geom_point() +
+  labs(
+    title = "Motorstorrelse vs. drivstofforbruk",
+    x = "Motorstorrelse (liter)",
+    y = "Highway MPG",
+    caption = "Kilde: mpg-datasettet"
+  )
+```
+
+```{r}
+## 3. What’s the difference between coord_quickmap() and coord_map()?
+# coord_map() projiserer en del av jorda, som er omtrent sfærisk, over på et flatt         2D-plan ved å bruke en hvilken som helst projeksjon definert i mapproj-pakken.         Kartprojeksjoner bevarer som regel ikke rette linjer, så dette krever en del           beregning. coord_quickmap() er en rask tilnærming som bevarer rette linjer. Den        fungerer best for mindre områder nær ekvator.
+library(ggplot2)
+library(maps)
+
+# Hent kartdata (verdenskart)
+world <- map_data("world")
+
+# coord_quickmap(): rask tilnærming
+p1 <- ggplot(world, aes(long, lat, group = group)) +
+  geom_polygon(fill = "lightblue", color = "white") +
+  coord_quickmap() +
+  ggtitle("coord_quickmap()")
+
+# coord_map(): ordentlig projeksjon (her Mercator)
+p2 <- ggplot(world, aes(long, lat, group = group)) +
+  geom_polygon(fill = "lightblue", color = "white") +
+  coord_map("mercator") +
+  ggtitle("coord_map('mercator')")
+
+p1
+p2
+
+```
+
+```{r}
+## 4. What does the plot below tell you about the relationship between city and highway         mpg? Why is coord_fixed() important? What does geom_abline() do?
+
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
+  geom_point() + 
+  geom_abline() +
+  coord_fixed()
+
+# Hva plottet viser: En klar lineær sammenheng: biler som bruker lite drivstoff i byen     (cty)          bruker også lite på motorvei (hwy). Men hwy er nesten alltid høyere enn cty      (punktene ligger     over linjen).
+
+# geom_abline(): Tegner en diagonal linje (her med standard slope = 1 og intercept =       0). Linja      representerer hvor punktene ville ligget hvis hwy == cty.
+
+# coord_fixed(): Setter samme skala på x- og y-aksen (1 enhet på x = 1 enhet på y).        Dette gjør     at diagonalen faktisk representerer likhet, uten at aksene blir strukket     ulikt.
+```
+
+## 3.10 The layerd grammar of graphics
+
+```{r}
+## et "template" for hvordan et ggplot kan se ut. 
+# ggplot(data = <DATA>) + 
+#    <GEOM_FUNCTION>(
+#     mapping = aes(<MAPPINGS>),
+#    stat = <STAT>, 
+#    position = <POSITION>
+# ) +
+#  <COORDINATE_FUNCTION> +
+#  <FACET_FUNCTION>
+```
 
 
 
