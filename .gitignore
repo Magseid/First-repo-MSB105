@@ -6,6 +6,7 @@
 *.Rproj
 *.md
 *.tex
+*.png
 
 # History files
 .Rhistory
