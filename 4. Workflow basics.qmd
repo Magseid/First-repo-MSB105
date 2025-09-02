@@ -1,0 +1,192 @@
+---
+title: "4. Workflow: basics"
+format: html
+editor: visual
+---
+
+## 4.1 Coding basics
+
+```{r}
+# kan bruke R som en kalkulator.
+
+1 / 200 * 30
+
+(59 + 73 + 2) / 3
+
+sin(pi / 2)
+```
+
+```{r}
+# lage nye objekter ved å bruke "<-", objekte vil dukke opp i "Enviroment" tabben
+# Alle føller samme formel når man skal lage et objekt "object_name <- value"
+
+x <- 3 * 4
+```
+
+## 4.2 Whats in a name?
+
+```{r}
+# Et objekt navn må starte med en bokstav og kan kun inneholde bokstaver, tall, _ og "." .
+# Det er ulike metoder å skrive på dersom man vil ha en litt mer beskrivende nav på objektet.
+
+# i_use_snake_case
+# otherPeopleUseCamelCase
+# some.people.use.periods
+# And_aFew.People_RENOUNCEconvention
+```
+
+```{r}
+# vi kan undersøke et objekt ved å skrive navnet:
+
+x
+
+this_is_a_really_long_name <- 3.5
+
+this_is_a_really_long_name
+
+```
+
+## 4.3 Calling functions
+
+```{r}
+seq(1,10)
+
+# R studio hjelper til med å legg på f.eks parantes eller anførselstegn på begge sider.
+
+x <- "hello world"
+
+# men det kan fortsatt komme en feil, men da vil R studio legge til et pluss tegn. Dette forteller oss     at R venter på en fortsettelse av inputten.
+# # LEGG MERKE TIL AT DETTE FOREGÅR I CONSOLLEN
+x <- "hello
++"
+```
+
+```{r}
+# dersom man vil se verdien av et objekt som man nettop har laget, kan vi sette hele "koden" inn i et     parantes slik at vi slipper å gjøre slik som i chunken over hvor vi undersøkte hva x og               this_is_a_really_long_name var.
+# Dette er den manuelle metoden
+
+y <- seq(1, 10, length.out = 5)
+y
+
+# Dette er den automatiske metoden
+
+(y <- seq(1, 10, length.out = 5))
+
+```
+
+## 4.4 Exercises
+
+```{r}
+## 1. Why does this code not work?
+
+my_variable <- 10
+my_varıable
+
+# Denne koden fungerer ikke fordi at "i"-ene er forskjellige
+```
+
+```{r}
+## 2. Tweak each of the following R commands so that they run correctly:
+
+#library(tidyverse)
+
+#ggplot(dota = mpg) + 
+#  geom_point(mapping = aes(x = displ, y = hwy))
+
+#fliter(mpg, cyl = 8)
+#filter(diamond, carat > 3)
+
+# Skrive feil ved filter
+
+library(tidyverse)
+# 1. Riktig argument er 'data', ikke 'dota'
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy))
+
+# 2. Stavefeil: skal være filter(), ikke fliter()
+filter(mpg, cyl == 8)
+
+# 3. Datasettet heter 'diamonds' (flertall), ikke 'diamond'
+filter(diamonds, carat > 3)
+```
+
+```{r}
+## 3. Press Alt + Shift + K. What happens? How can you get to the same place using the menus?
+# Da kommer det opp en "shortcut" liste 
+
+# Kan finne dette manuelt ved å gå på "help" øverst på oppgavelinjen ved siden av "profile" og "Tools"     derreter finner du "keybord shortcut help"
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
