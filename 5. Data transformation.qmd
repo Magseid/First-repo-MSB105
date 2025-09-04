@@ -1,0 +1,528 @@
+---
+title: "5. Data transformation"
+format: html
+editor: visual
+---
+```{r}
+library(nycflights13)
+library(tidyverse)
+library(dplyr)
+```
+
+# 5.1 Introduction
+
+```{r}
+nycflights13::flights
+
+```
+
+```{r}
+# Skal lære om de fem nøkkelsaspektene ved "dplyr"
+
+# 1 - Pick observations by their values (filter()).
+# 2 - Reorder the rows (arrange())
+# 3 - Pick variables by their names (select()).
+# 4 - Create new variables with functions of existing variables (mutate()).
+# 5 - Collapse many values down to a single summary (summarise()).
+```
+
+# 5.2 Filter rows with filter()
+```{r}
+# filter() Lar deg velge ut observasjoner basert på verdiene deres. Det første argumentet er navnet på     datasettet (data frame). Det andre og påfølgende argumentene er uttrykk som filtrerer datasettet.     For eksempel kan vi velge alle flygninger den 1. januar med:
+
+filter(flights, month == 1, day == 1)
+
+# om man ønsker å lagre dette nye data oppsettet, må man lag det som et objekt
+
+jan1 <- filter(flights, month == 1, day == 1)
+
+# R enten skriver ut resultatet, eller lagrer det i en variabel. Hvis du vil gjøre begge deler, kan du     sette tildelingen i parentes:
+(dec25 <- filter(flights, month == 12, day == 25))
+
+```
+
+```{r}
+# To use filtering effectively, you have to know how to select the observations that you want using       the comparison operators. R provides the standard suite: >, >=, <, <=, != (not equal), and ==         (equal).
+# For other types of combinations, you’ll need to use Boolean operators yourself: & is “and”, | is        “or”, and ! is “not”.
+
+# følgende viser flygninger i november eller desember
+filter(flights, month == 11 | month == 12)
+
+# Denne kan oversettes til " find alle flygninger som reiser i November eller Desember", men det denne     egentlig finner er: alle måneder som er lik 11 | 12, og seter dens verdi til "TRUE". TRUE blir        tolket numerisk og blir derfor til 1 som er januar.
+
+filter(flights, month == (11 | 12))
+
+# dette er en løsnig på problemet over.
+
+(nov_dec <- filter(flights, month %in% c(11, 12)))
+
+```
+
+```{r}
+# Noen ganger kan du forenkle komplisert subsetting ved å huske De Morgans lov: !(x & y) er det samme     som !x | !y, og !(x | y) er det samme som !x & !y.
+
+# Dette betyr: Velg alle rader hvor det ikke er sant at enten ankomstforsinkelsen er større enn 120         eller avgangsforsinkelsen er større enn 120.
+
+filter(flights, !(arr_delay > 120 | dep_delay > 120))
+
+#Dette betyr direkte: Velg alle rader hvor ankomstforsinkelsen er ≤ 120 og avgangsforsinkelsen er ≤ 120.
+
+filter(flights, arr_delay <= 120, dep_delay <= 120)
+
+```
+
+## 5.2.4 Exercises
+
+```{r}
+## 1. Find all flights that
+
+# 1.1 Had an arrival delay of two or more hours
+
+filter(flights, arr_delay >= 120)
+
+# 1.2 Flew to Houston (IAH or HOU)
+
+filter(flights, dest %in% c("IAH", "HOU"))
+
+# 1.3 Were operated by United, American, or Delta
+
+filter(flights, carrier %in% c("UA", "AA", "DL"))
+
+# 1.4 Departed in summer (July, August, and September)
+
+filter(flights, month %in% c(7, 8, 9))
+
+# 1.5 Arrived more than two hours late, but didn’t leave late
+
+filter(flights, arr_delay > 120, dep_delay <= 0)
+
+# 1.6 Were delayed by at least an hour, but made up over 30 minutes in flight
+
+filter(flights, dep_delay >= 60, (dep_delay - arr_delay) >= 30 )
+
+# 1.7 Departed between midnight and 6am (inclusive)
+
+filter(flights, (hour >= 0 & hour <= 6 ))
+
+```
+
+```{r}
+## 2. Another useful dplyr filtering helper is between(). What does it do? Can you use it to simplify the         code needed to answer the previous challenges?
+
+# between(x, left, right) er en dplyr-hjelpefunksjon som tester om verdiene i x ligger mellom left og        right (inklusive grenser).
+# vi kan bruke den i flere tilfeller for å forenkle noen av deloppgavene over. f.eks. ved oppgave 1.4 og     1.7
+
+# 1.4
+filter(flights, between(month, 7, 9))
+
+# 1.7
+filter(flights, between(hour, 0, 6))
+```
+
+```{r}
+## 3. How many flights have a missing dep_time? What other variables are missing? What might these rows          represent?
+
+filter(flights, is.na(dep_time)) %>%
+         summarise(n = n())
+
+# tester for flere 
+flights %>%
+  filter(is.na(dep_time)) %>%
+  summarise(
+    dep_delay_na = sum(is.na(dep_delay)),
+    arr_time_na  = sum(is.na(arr_time)),
+    arr_delay_na = sum(is.na(arr_delay))
+  )
+
+```
+
+```{r}
+## 4. Why is NA ^ 0 not missing? Why is NA | TRUE not missing? Why is FALSE & NA not missing? Can you            figure out the general rule? (NA * 0 is a tricky counterexample!)
+```
+
+# 5.3 Arrange rows with arrange()
+
+```{r}
+# Arrange() fungerer likt som filter() bortsett fra at den istdenfor å velge rader, så endrer den dens        rekkefølge. 
+
+arrange(flights, year, month, day)
+
+arrange(flights, dep_delay)
+
+# bruker "desc()" for å om organisere i en synkende orden
+
+arrange(flights, desc(dep_delay))
+```
+
+## 5.3.1 Exercises
+
+```{r}
+## 1. How could you use arrange() to sort all missing values to the start? (Hint: use is.na()).
+
+arrange(flights, desc(is.na(dep_delay)))
+
+# En annen metode å gjøre det på
+flights %>%
+  arrange(desc(is.na(dep_delay)))
+```
+
+```{r}
+## 2. Sort flights to find the most delayed flights. Find the flights that left earliest.
+
+# Flyene med mes delay
+
+flights %>%
+  arrange(desc(dep_delay))
+
+# Flyene som reise tidligst
+
+flights %>%
+  arrange(dep_delay)
+```
+
+```{r}
+## 3. Sort flights to find the fastest (highest speed) flights.
+
+flights %>%
+  arrange(desc(distance / (air_time / 60)))
+
+# Kan bruke "mutate()" for å lage en ny variabel
+flights %>%
+  mutate(speed = distance / (air_time / 60)) %>%
+  arrange(desc(speed))
+```
+
+```{r}
+##. 4 Which flights travelled the farthest? Which travelled the shortest?
+
+# Flyene som dro lengst
+
+arrange(flights, desc(distance))
+
+# Flyene som dro kortest
+
+flights %>%
+  arrange(distance)
+```
+
+# 5.4 Select columns with select()
+
+### Noen data sett kan ha hundrevis, og eller tusenvis av variabler. I disse tilfellene er utfordringen å velge ut de variablene som vi er interessert i. Dette kan vi gjøre ved å bruke "select()". I dette tilfellet med "flight" datasettet er det ikke like nyttig, men vi kan fortsatt se nytten av det
+
+```{r}
+flights %>%
+  select(year, month, day)
+```
+
+```{r}
+# kan også bruke ":" til å gi oss alle kolonnene fra og med "year" og "day"
+
+flights %>%
+  select(year:day)
+```
+
+```{r}
+# Kan også fjerne kolonner fra datasettet
+
+select(flights, -(year:day))
+```
+
+### det finnes flere hjelpefunksjoner til når man skal bruke select()
+
+```{r}
+# starts_with("x") : Velger de variabler som starter med x
+
+flights %>%
+  select(starts_with("y"))
+    
+```
+
+```{r}
+# ends_with("x")  : Velger de variabler som slutter med x
+
+flights %>%
+  select(ends_with("y"))
+
+```
+
+```{r}
+# contains("x") : Velger variabler som inneholder x
+
+flights %>%
+  select(contains("y"))
+
+```
+
+```{r}
+# kan også legge flere sammen
+flights %>%
+  select(starts_with("y") | ends_with("y"))
+```
+
+```{r}
+# vi kan bruke selct() til å endre nav, men da fjerner den alle variabler som ikke nevnes. istedenfor kan vi bruke "rename()" som er en variant av select() som beholder alle variabler som ikke blir nevnt.
+
+flights %>%
+  rename(tail_num = tailnum)
+```
+
+```{r}
+# kan også bruke everything() inn i select(). denne kan være nyttig dersom du har noen variabler som du ønsker å flytte til starten av datasettet.
+
+select(flights, time_hour, air_time, everything())
+```
+
+## 5.4.1 Exercises
+
+```{r}
+## 1. Brainstorm as many ways as possible to select dep_time, dep_delay, arr_time, and arr_delay from flights.
+
+flights %>%
+  select(dep_time, dep_delay, arr_time, arr_delay)
+
+# kan bruke ends_with(), stats_with(), contains()
+```
+
+```{r}
+## 2. What happens if you include the name of a variable multiple times in a select() call?
+
+flights %>%
+  select(year, year, day, month, day, year)
+
+# ingenting skjer, den teller ikke med duplikater
+```
+
+```{r}
+## 3. What does the any_of() function do? Why might it be helpful in conjunction with this vector?
+
+vars <- c("year", "month", "day", "dep_delay", "arr_delay")
+
+select(flights, any_of(vars))
+
+# Dette velger alle kolonnene som faktisk finnes i flights. Hvis du f.eks. hadde skrevet feil                "dep_delayy", så ville any_of() bare ignorert den — ingen krasj.
+# any_of() = “Velg disse variablene hvis de finnes. Hvis ikke, bare hopp over dem.”
+
+```
+
+```{r}
+## 4. Does the result of running the following code surprise you? How do the select helpers deal with case by default? How can you change that default?
+
+select(flights, contains("TIME"))
+
+# dette kan overraske fordi at man tror at "TIME" bare skal matche nøyaktig store bokstaver "TIME". 
+# Men dplyr’s select-helpers (starts_with(), ends_with(), contains(), osv.) er ikke følsomme for           store/små bokstaver som standard.
+
+# vi kan endre #defaulten" ved å legge inn "ignore.case = FALSE"
+
+select(flights, contains("TIME", ignore.case = FALSE))
+```
+
+# 5.5 Add new variables with mutate()
+
+### I tillegg til å velge eksisterende kolonner, er det ofte nyttig å legge til nye kolonner som er funksjoner av eksisterende kolonner. Det er jobben til mutate().
+# mutate() legger alltid nye kolonner til slutten av datasettet, så vi begynner med å lage et smalere   datasett slik at vi kan se de nye variablene. Husk at når du er i RStudio, er den enkleste måten å se alle kolonnene på å bruke View().
+
+```{r}
+# lager et nytt objekt "flights_sml" som skal inneholde mindre variabler
+
+flights_sml <- select(flights, 
+  year:day, 
+  ends_with("delay"), 
+  distance, 
+  air_time
+)
+
+# bruker mutate() til å lage to nye variabler: gain og speed
+mutate(flights_sml,
+  gain = dep_delay - arr_delay,
+  speed = distance / air_time * 60
+)
+
+```
+
+```{r}
+# Kan bruke de nye variablene til å lage nye variabler
+
+mutate(flights_sml,
+  gain = dep_delay - arr_delay,
+  hours = air_time / 60,
+  gain_per_hour = gain / hours
+)
+```
+
+```{r}
+# hvis vi kun vil se de nye variablene kan vi bruke transmute()
+
+flights %>%
+  transmute(
+    gain = dep_delay - arr_delay,
+    hours = air_time / 60,
+    gain_per_hour = gain / hours
+  )
+```
+
+```{r}
+transmute(flights,
+  dep_time,
+  hour = dep_time %/% 100,
+  minute = dep_time %% 100
+)
+```
+
+## 5.5.2 Exercises
+
+```{r}
+## 1. Currently dep_time and sched_dep_time are convenient to look at, but hard to compute with because they’re not really continuous numbers. Convert them to a more convenient representation of number of minutes since midnight.
+
+flights %>%
+  transmute(
+    dep_minutes = (dep_time %/% 100) * 60 + (dep_time %% 100),
+    sched_dep_minutes = (sched_dep_time %/% 100) * 60 + (sched_dep_time %% 100)
+  )
+```
+
+
+```{r}
+## 2. Compare air_time with arr_time - dep_time. What do you expect to see? What do you see? What do you   need to do to fix it?
+
+# problemet er at arr_time og dep_time er på HHMM- format (klokkeslet format), ikke i minutter. dermed gir arr_time - dep_time rare resultater. for å løse dette må vi som i oppgave 1 gjøre om til minutter.
+
+flights %>%
+  transmute(
+    dep_minutes = (dep_time %/% 100) * 60 + (dep_time %% 100),
+    arr_minutes = (arr_time %/% 100) * 60 + (arr_time %% 100),
+    calc_air_time = arr_minutes - dep_minutes
+  )
+```
+
+
+```{r}
+## 3. Compare dep_time, sched_dep_time, and dep_delay. How would you expect those three numbers to be related?
+
+# forventinger : dep_delay = dep_time − sched_dep_time
+```
+
+
+```{r}
+# 4. Find the 10 most delayed flights using a ranking function. How do you want to handle ties? Carefully read the documentation for min_rank().
+
+flights %>%
+  mutate(rank = min_rank(desc(dep_delay))) %>%
+  filter(rank <= 20) %>%
+  arrange(rank)
+
+# vi ser at for rank 12, så har vi tre like verdier som får tallet rangering 12. Dersom vi vil gi dem en unik rangering så kan vi bruke row_number() istedenfor
+
+flights %>%
+  mutate(rank = row_number(desc(dep_delay))) %>%
+  filter(rank <= 20) %>%
+  arrange(rank)
+
+# Om vi bruker dens_rank() får vi noe av det samme som når vi brukte min_rank(), men dens_rank() hopper ikke over tall. altså når vi brukte min_rank() fikk vi verdiene 10,11,12,12,12,15,16. (hoppet over 13 og 14). dette skjer ikke når vi bruker dens_rank().
+
+flights %>%
+  mutate(rank = dense_rank(desc(dep_delay))) %>%
+  filter(rank <= 18) %>%
+  arrange(rank)
+```
+
+```{r}
+## 5. What does 1:3 + 1:10 return? Why?
+
+1:3 + 1:10
+
+# 1:3 = c(1,2,3)
+
+# 1:10 = c(1,2,3,4,5,6,7,8,9,10)
+
+# Når du legger dem sammen, resirkuleres 1:3 gjentatte ganger:
+# (1,2,3,1,2,3,1,2,3,1) + (1,2,3,4,5,6,7,8,9,10) = 2,4,6,5,7,9,8,10,12,11
+```
+
+```{r}
+## 6. What trigonometric functions does R provide?
+
+# - cos(x)
+# - sin(x)
+# - tan(x)
+# - acos(x)
+# - asin(x)
+# - atan(x)
+# - atan2(y, x)
+# - cospi(x)
+# - sinpi(x)
+# - tanpi(x)
+```
+
+# 5.6 Grouped summaries with summarise()
+### Det siste viktige verbet er summarise(). Det reduserer et datasett til én enkelt rad
+
+```{r}
+# For å finne gjennomsnittet av delay
+
+summarise(flights, delay = mean(dep_delay, na.rm = TRUE))
+
+```
+
+### Summarise() er ikke så nyttig om vi bruker det alene, men dersom vi legger til funksjonen group_by(), kan vi istedenfor å se på hele datasettet, kan vi se på individuelle grupper. 
+
+```{r}
+# bruker den samme koden som over, men legger til group_by()
+
+by_day <- group_by(flights, year, month, day)
+summarise(by_day, delay = mean(dep_delay, na.rm = TRUE))
+
+# linje 1: velger ut variabler vi vil se på og legger de under objektet "by_day"
+# linje 2: gir gjennomsnitts "delay" for hver dato
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
